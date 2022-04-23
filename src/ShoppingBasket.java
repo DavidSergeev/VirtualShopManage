@@ -6,7 +6,7 @@ public class ShoppingBasket {
     private double totalBasketPrice;
 
     
-    public void addProduct(Product product, Integer amount) {
+    public void addProduct(Product product, int amount) {
         for (Product currentProduct : inBasket.keySet()) {
            if (currentProduct != null) {
                if (currentProduct.equals(product)){
