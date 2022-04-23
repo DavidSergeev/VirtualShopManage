@@ -226,8 +226,8 @@ public class Shop {
                     System.out.println("""
                             1 - Print all customers\s
                             2 - Print all club members\s
-                            3 - Print all buyers\s
-                            4 - Print max buyer\s
+                            3 - Print all buyers (Customer only)\s
+                            4 - Print max buyer (Customer)\s
                             5 - Add product\s
                             6 - Change product status\s
                             7 - Buy product\s
@@ -353,7 +353,7 @@ public class Shop {
             int purchaseCounter = currentUser.getPurchaseCounter();
             purchaseCounter++;
             currentUser.setPurchaseCounter(purchaseCounter);
-            System.out.println("Total spended " + currentUser.getSpended());
+           // System.out.println("Total spended " + currentUser.getSpended());
         }
         currentUser.getBasket().getInBasket().clear();
     }
@@ -477,8 +477,13 @@ public class Shop {
 
     private void printMaxBuyer() {
         users.sort(Collections.reverseOrder());
-        if (users.size() != 0) {
-          printCustomerData((Customer) users.get(0));
+        for (User customer : users) {
+            if (customer != null) {
+                if (customer.getClass().getTypeName().equals("Customer")) {
+                    printCustomerData((Customer) customer);
+                    break;
+                }
+            }
         }
     }
 
