@@ -6,7 +6,6 @@ public abstract class User implements Comparable<User>{
     private String lastName;
     private String userName;
     private String password;
-    private boolean madePurchase;
     private ShoppingBasket basket;
     private double spended;
     private int purchaseCounter;
@@ -19,7 +18,6 @@ public abstract class User implements Comparable<User>{
         this.lastName = lastName;
         this.userName = userName;
         this.password = password;
-        this.madePurchase = false;
         this.purchaseCounter = 0;
         this.spended = 0;
     }
@@ -92,7 +90,7 @@ public abstract class User implements Comparable<User>{
         }
     }
 
-    public void printBasket(BaseOptions options) {
+    public void printBasket(BaseOptions option) {
         double price;
         double totalPrice;
         double totalBasketPrice = 0;
@@ -100,7 +98,7 @@ public abstract class User implements Comparable<User>{
         for (Product product : getBasket().getInBasket().keySet()) {
 
             int value = getBasket().getInBasket().get(product);
-            if (options == BaseOptions.OPTION_1 || options == BaseOptions.OPTION_2) {
+            if (option == BaseOptions.OPTION_1 || option == BaseOptions.OPTION_2) {
                 price = product.getDiscountPrice();
 
             }
@@ -111,18 +109,11 @@ public abstract class User implements Comparable<User>{
             System.out.println("Unit: " + product.getAbout() + "; unit price: " + price + "$; total units: " + value + "; total price: " + totalPrice + "$");
 
             totalBasketPrice+=totalPrice;
-            getBasket().setTotalBasketPrice(totalBasketPrice);
+            basket.setTotalBasketPrice(totalBasketPrice);
 
         }
     }
 
-    public boolean isMadePurchase() {
-        return madePurchase;
-    }
-
-    public void setMadePurchase(boolean madePurchase) {
-        this.madePurchase = madePurchase;
-    }
 
     public String toString(){
         return this.firstName + " " + this.lastName;

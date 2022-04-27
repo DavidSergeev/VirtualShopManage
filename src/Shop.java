@@ -1,22 +1,15 @@
 import java.util.*;
 
 public class Shop {
-    private final List<User> users;
+    private final List<Customer> customers;
+    private final List<Worker> workers;
     private final List<Product> products;
 
     public Shop() {
 
-        users = new LinkedList<>();
+        customers = new ArrayList<>();
+        workers = new LinkedList<>();
         products = new LinkedList<>();
-        products.add(new Product(100,"baba", 1));
-        products.add(new Product(100,"gaga", 8));
-        products.add(new Product(1000,"dada", 12));
-        products.add(new Product(10100,"yaya", 3));
-        Product p = new Product(10100,"uauaa", 13);
-        p.setInStock(false);
-        products.add(p);
-        products.add(new Product(10100,"fafa", 19.5f));
-        products.add(new Product(10100,"jaja", 39));
         run();
     }
 
@@ -53,17 +46,19 @@ public class Shop {
         String userName, password, firstName, lastName;
         Scanner lnScanner = new Scanner(System.in);
         Scanner intScanner = new Scanner(System.in);
-        BaseOptions userRank = null;
+
+        System.out.println("Are you a worker? y/n");
+        String userAnswer = lnScanner.nextLine();
+
+        boolean isWorker = choseYesOption(userAnswer);
         userName = getCorrectUsername();
         password = getCorrectPassword();
         firstName = getCorrectName(true);
         lastName = getCorrectName(false);
 
 
-        System.out.println("Are you a worker? y/n");
-        String userAnswer = lnScanner.nextLine();
-
-        if (choseYesOption(userAnswer)) {
+        if (isWorker) {
+            BaseOptions userRank = null;
             Worker workerUser = new Worker(firstName, lastName, userName, password);
             do {
                 System.out.println("What is your rank?");
@@ -89,7 +84,7 @@ public class Shop {
                 }
             } while (!(userRank == BaseOptions.OPTION_3 || userRank == BaseOptions.OPTION_2 || userRank == BaseOptions.OPTION_1));
 
-            users.add(workerUser);
+            workers.add(workerUser);
 
         }
         else {
@@ -97,27 +92,40 @@ public class Shop {
             System.out.println("Are you club member? y/n");
             userAnswer = lnScanner.nextLine();
             customerUser.setClubMember(choseYesOption(userAnswer));
-            users.add(customerUser);
+            customers.add(customerUser);
 
         }
 
     }
     private String getCorrectUsername() {
-        boolean exists;
+        boolean existsInWorkers, existsInCustomers, exists;
         String userName;
         Scanner lnScanner = new Scanner(System.in);
         do {
             System.out.println("Enter user name: ");
             userName = lnScanner.nextLine();
-            exists = false;
-            for (User user: users) {
-                if (user != null) {
-                    if (user.getUserName().equals(userName)) {
-                        exists = true;
-                        break;
+            existsInWorkers = false;
+            existsInCustomers = false;
+
+                for (Worker worker : workers) {
+                    if (worker != null) {
+                        if (worker.getUserName().equals(userName)) {
+                            existsInWorkers = true;
+                            break;
+                        }
                     }
                 }
-            }
+
+                for (Customer customer : customers) {
+                    if (customer != null) {
+                        if (customer.getUserName().equals(userName)) {
+                            existsInCustomers = true;
+                            break;
+                        }
+                    }
+                }
+            exists = existsInWorkers || existsInCustomers;
+
             if (exists) {
                 System.out.println("The username already exists, chose another.");
             }
@@ -205,10 +213,10 @@ public class Shop {
     }
 
     private void openUserMenu(boolean isWorker, int userIndex) {
-        User currentUser = users.get(userIndex);
         if (isWorker) {
+            Worker currentWorker = workers.get(userIndex);
             String rankMessage = "";
-            BaseOptions workerRank = ((Worker) currentUser).getRank();
+            BaseOptions workerRank = currentWorker.getRank();
 
             switch (workerRank) {
                 case OPTION_1 -> rankMessage = " (Labour)!";
@@ -216,7 +224,7 @@ public class Shop {
                 case OPTION_3 -> rankMessage = " (Director)!";
             }
 
-            System.out.println("Hello " + currentUser + rankMessage);
+            System.out.println("Hello " + currentWorker + rankMessage);
             WorkerMenuOptions workerChoice = null;
 
             do{
@@ -226,8 +234,8 @@ public class Shop {
                     System.out.println("""
                             1 - Print all customers\s
                             2 - Print all club members\s
-                            3 - Print all buyers (Customer only)\s
-                            4 - Print max buyer (Customer)\s
+                            3 - Print all buyers\s
+                            4 - Print max buyer\s
                             5 - Add product\s
                             6 - Change product status\s
                             7 - Buy product\s
@@ -242,12 +250,16 @@ public class Shop {
                             case PRINT_MAX_BUYER -> printMaxBuyer();
                             case ADD_PRODUCT -> addToProductsList();
                             case CHANGE_PRODUCT_STATUS -> changeProductStatus();
-                            case BUY_PRODUCT -> buyProduct(currentUser, true);
+                            case BUY_PRODUCT -> {
+                                setWorkerDiscountPrice(currentWorker.getRank());
+                                buyProduct(currentWorker, BaseOptions.OPTION_1);
+                            }
+                            case EXIT -> System.out.println("Exit");
 
                         }
 
                     } else {
-                        System.out.println("Employee selection should be less than 9 and above 0");
+                        System.out.println("Selection should be less than 9 and above 0");
                     }
                 } catch (InputMismatchException e) {
                     System.out.println("Enter only digits");
@@ -257,35 +269,48 @@ public class Shop {
 
         }
         else {
+            Customer currentCustomer = customers.get(userIndex);
+            BaseOptions option;
             System.out.print("Hello ");
-            System.out.println(((Customer) currentUser).isClubMember() ? (currentUser + " (VIP)!") : (currentUser + "!"));
-            buyProduct(currentUser, false);
+            if (currentCustomer.isClubMember()) {
+                System.out.println(currentCustomer + " (VIP)!");
+                option = BaseOptions.OPTION_2;
+            }
+            else {
+                System.out.println(currentCustomer + "!");
+                option = BaseOptions.OPTION_3;
+            }
+            setCustomerDiscountPrice();
+            buyProduct(currentCustomer, option);
         }
 
     }
 
 
     private int findUser(boolean isWorker, String userName, String password) {
-        String className;
-        if(isWorker) {
-            className = "Worker";
 
-        }
-        else {
-            className = "Customer";
-        }
         int index = -1;
-
-        for (int i = 0; i < users.size(); i++) {
-            User currentUser = users.get(i);
-            if (currentUser != null) {
-                if (className.equals(currentUser.getClass().getTypeName())) {
-                    if (userName.equals(currentUser.getUserName()) && password.equals(currentUser.getPassword())) {
+        if (isWorker) {
+            for (int i = 0; i < workers.size(); i++) {
+                Worker currentWorker = workers.get(i);
+                if (currentWorker != null) {
+                        if (userName.equals(currentWorker.getUserName()) && password.equals(currentWorker.getPassword())) {
+                            index = i;
+                            break;
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < customers.size(); i++) {
+                Customer currentCustomer = customers.get(i);
+                if (currentCustomer != null) {
+                    if (userName.equals(currentCustomer.getUserName()) && password.equals(currentCustomer.getPassword())) {
                         index = i;
                         break;
                     }
                 }
             }
+
         }
         return index;
     }
@@ -294,50 +319,44 @@ public class Shop {
         return input.equals("Y") || input.equals("y") || input.equals("yes");
     }
 
-    private void buyProduct(User currentUser, boolean isWorker) {
-
-        if (isWorker) {
-            setWorkerDiscountPrice(((Worker) currentUser).getRank());
-            }
-        else {
-            setCustomerDiscountPrice();
-        }
-
+    private void buyProduct(User currentUser, BaseOptions option) {
         int userChoice;
+        double spended = 0;
         Scanner intScanner = new Scanner(System.in);
-        System.out.println("Enter the number of product you want to buy (-1 to exit): ");
         do {
             userChoice = -1;
             try {
                 int i=0, j=1;
                 Product currentProduct;
                 Map<Integer, Integer> inStockProdIndexes = new HashMap<>();
-                while (i < products.size()) {
+                if (products.size() == 0) {
+                    System.out.println("Temporary no products, enter -1 to exit.");
+                } else {
+                    while (i < products.size()) {
                         currentProduct = products.get(i);
                         inStockProdIndexes.put(j, i);
                         if (currentProduct != null && currentProduct.isInStock()) {
                             System.out.println(j + ". " + currentProduct);
+                            
                             j++;
                         }
                         i++;
                     }
-
+                    System.out.println("Enter the number of product you want to buy (-1 to exit): ");
+                }
                 userChoice = intScanner.nextInt();
                 if (userChoice < j && userChoice >= 1) {
-                     currentUser.addToBasket(products.get(inStockProdIndexes.get(userChoice)));
-                     if (isWorker) {
-                         currentUser.printBasket(BaseOptions.OPTION_1);
-                     } else {
-
-                         if (((Customer) currentUser).isClubMember()) {
-                             currentUser.printBasket(BaseOptions.OPTION_2);
-                         }
-                         else {
-                             currentUser.printBasket(BaseOptions.OPTION_3);
-                         }
-                     }
+                    currentUser.addToBasket(products.get(inStockProdIndexes.get(userChoice)));
+                    currentUser.printBasket(option);
+                } else {
+                    if (userChoice != -1) {
+                        System.out.println("Can't find product with index " + userChoice);
+                    }
                 }
 
+                if (userChoice == -1) {
+                    spended = currentUser.getBasket().getTotalBasketPrice();
+                }
 
             } catch (InputMismatchException e) {
                 System.out.println("Error");
@@ -345,17 +364,16 @@ public class Shop {
 
         } while ((userChoice != -1));
 
-        double spended = currentUser.getBasket().getTotalBasketPrice();
+
+        currentUser.getBasket().setTotalBasketPrice(0);
+        currentUser.getBasket().getInBasket().clear();
+
         System.out.println("Total basket price: " + spended +"$\n");
         if (spended > 0) {
-            currentUser.setMadePurchase(true);
             currentUser.setSpended(spended+currentUser.getSpended());
-            int purchaseCounter = currentUser.getPurchaseCounter();
-            purchaseCounter++;
-            currentUser.setPurchaseCounter(purchaseCounter);
-           // System.out.println("Total spended " + currentUser.getSpended());
+            currentUser.setPurchaseCounter(currentUser.getPurchaseCounter()+1);
         }
-        currentUser.getBasket().getInBasket().clear();
+
     }
 
     private void setWorkerDiscountPrice(BaseOptions rank) {
@@ -383,25 +401,40 @@ public class Shop {
     }
 
     private void printCustomOrClubMemberOrBuyers(BaseOptions options){
-        for (User currentCustomer : users) {
+        String message = switch (options) {
+
+            case OPTION_1 -> "Customers list: ";
+            case OPTION_2 -> "Club members list: ";
+            case OPTION_3 -> "Buyers list: ";
+
+        };
+
+        System.out.println(message);
+
+        for (Customer currentCustomer : customers) {
             if (currentCustomer != null) {
-                boolean isCustomer = currentCustomer.getClass().getTypeName().equals("Customer");
-                if (isCustomer) {
-                    Customer customerRef = (Customer) currentCustomer;
                     switch (options) {
                         case OPTION_1:
-                            printCustomerData(customerRef);
+                            printCustomerData(currentCustomer);
                             break;
                         case OPTION_2:
-                            if (customerRef.isClubMember()) {
-                                printCustomerData(customerRef);
+                            if (currentCustomer.isClubMember()) {
+                                printCustomerData(currentCustomer);
                             }
                             break;
                         case OPTION_3:
-                            if (customerRef.isMadePurchase()) {
-                                printCustomerData(customerRef);
+                            if (currentCustomer.getPurchaseCounter() > 0) {
+                                printCustomerData(currentCustomer);
                             }
                             break;
+                    }
+            }
+        }
+        if (options == BaseOptions.OPTION_3) {
+            for (Worker worker : workers) {
+                if(worker != null) {
+                    if (worker.getPurchaseCounter() > 0) {
+                        printWorkerData(worker);
                     }
                 }
             }
@@ -435,6 +468,7 @@ public class Shop {
 
                 if (!inProductList) {
                     products.add(newProduct);
+                    System.out.println("Product successfully added.");
                 }
             }
             else {
@@ -453,45 +487,71 @@ public class Shop {
         Scanner lnScanner = new Scanner(System.in);
         String inStockDescription;
         int productIndex = -1;
-        do {
-            int i=0;
-            try {
-                while (i < products.size()) {
-                    System.out.println(i + ". " + products.get(i));
-                    i++;
+        if (products.size() != 0) {
+            do {
+                int i=0;
+                try {
+                    while (i < products.size()) {
+                        System.out.println(i + ". " + products.get(i));
+                        i++;
+                    }
+                    System.out.println("Enter product index");
+                    productIndex = intScanner.nextInt();
+                } catch (InputMismatchException e) {
+                    System.out.println("Input error");
+                    intScanner.nextLine();
                 }
-                System.out.println("Enter product index");
-                productIndex = intScanner.nextInt();
-            } catch (InputMismatchException e) {
-                System.out.println("Input error");
-            }
-        } while (!(productIndex >= 0 && productIndex < products.size()));
+            } while (!(productIndex >= 0 && productIndex < products.size()));
 
-        System.out.println("Is product in stock? y/n");
-        inStockDescription = lnScanner.nextLine();
-        Product product = products.get(productIndex);
-        product.setInStock(choseYesOption(inStockDescription));
+            System.out.println("Is product in stock? y/n");
+            inStockDescription = lnScanner.nextLine();
+            Product product = products.get(productIndex);
+            product.setInStock(choseYesOption(inStockDescription));
 
-        System.out.println("Product now" + (product.isInStock() ? " " : " not ") + "in stock.");
+            System.out.println("Product now" + (product.isInStock() ? " " : " not ") + "in stock.");
+        } else {
+            System.out.println("No products found to change status\n");
+        }
     }
 
     private void printMaxBuyer() {
-        users.sort(Collections.reverseOrder());
-        for (User customer : users) {
+        customers.sort(Collections.reverseOrder());
+        if (customers.size() != 0) {
+            Customer customer = customers.get(0);
             if (customer != null) {
-                if (customer.getClass().getTypeName().equals("Customer")) {
-                    printCustomerData((Customer) customer);
-                    break;
-                }
+                System.out.println("Max buyer (Customer): ");
+                printCustomerData(customer);
+            }
+        }
+
+        workers.sort(Collections.reverseOrder());
+        if (workers.size() != 0) {
+            Worker worker = workers.get(0);
+            if (worker != null) {
+                System.out.println("Max buyer (Worker): ");
+                printWorkerData(worker);
             }
         }
     }
 
     private void printCustomerData(Customer customer) {
-        System.out.println("User name: " + customer.getUserName() + ", name: " +
+        System.out.println("Customer account name: " + customer.getUserName() + ", name: " +
                            customer + ", total spended: " + customer.getSpended() +
-                           ", total purchases: " + customer.getPurchaseCounter() +
+                           "$ , total purchases: " + customer.getPurchaseCounter() +
                            ", is club member: " + customer.isClubMember());
+
+    }
+
+    private void printWorkerData(Worker worker) {
+        String workerRank = switch (worker.getRank()) {
+            case OPTION_1 -> "Labour";
+            case OPTION_2 -> "Manager";
+            case OPTION_3 -> "Director";
+        };
+
+        System.out.println("Worker account name: " + worker.getUserName() + ", name: " +
+                worker + ", total spended: " + worker.getSpended() +
+                "$ , total purchases: " + worker.getPurchaseCounter() + ", worker rank: " + workerRank);
 
     }
 }
