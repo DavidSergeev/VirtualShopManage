@@ -14,32 +14,38 @@ public class Shop {
     }
 
     private void run() {
-        BaseOptions choice = null;
-        Scanner intScanner = new Scanner(System.in);
-        do {
-            System.out.println("Choose the option: ");
-            System.out.println("1 - Sign up.");
-            System.out.println("2 - Sign in.");
-            System.out.println("3 - Exit.");
-            try {
-                choice = BaseOptions.valueOf(intScanner.nextInt());
+       try {
 
-                if (choice != null) {
-                    switch (choice) {
-                        case OPTION_1 -> createUser();
-                        case OPTION_2 -> signIn();
-                        case OPTION_3 -> System.out.println("Exit");
-                    }
-                }
-                else {
-                    System.out.println("Unknown option (Allowed only 1, 2, 3)\n");
-                }
+           BaseOptions choice = null;
+           Scanner intScanner = new Scanner(System.in);
+           do {
+               System.out.println("Choose the option: ");
+               System.out.println("1 - Sign up.");
+               System.out.println("2 - Sign in.");
+               System.out.println("3 - Exit.");
+               try {
+                   choice = BaseOptions.valueOf(intScanner.nextInt());
 
-            } catch (InputMismatchException e) {
-                System.out.println("Enter only digits\n");
-                intScanner.nextLine();
-            }
-        } while (choice != BaseOptions.OPTION_3);
+                   if (choice != null) {
+                       switch (choice) {
+                           case OPTION_1 -> createUser();
+                           case OPTION_2 -> signIn();
+                           case OPTION_3 -> System.out.println("Exit");
+                       }
+                   }
+                   else {
+                       System.out.println("Unknown option (Allowed only 1, 2, 3)\n");
+                   }
+
+               } catch (InputMismatchException e) {
+                   System.out.println("Enter only digits\n");
+                   intScanner.nextLine();
+               }
+           } while (choice != BaseOptions.OPTION_3);
+
+       } catch (Exception e) {
+           System.out.println(Arrays.toString(e.getStackTrace()));
+       }
     }
 
     private void createUser() {
