@@ -14,4 +14,12 @@ public class Customer extends User {
         this.clubMember = clubMember;
     }
 
+
+    public void printCustomerData() {
+        System.out.println("Customer account name: " + this.getUserName() + ", name: " +
+                this + ", total spended: " + this.getSpended() +
+                "$ , total purchases: " + this.getPurchaseCounter() +
+                ", is club member: " + this.isClubMember());
+
+    }
 }

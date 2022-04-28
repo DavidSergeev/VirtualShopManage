@@ -12,4 +12,17 @@ public class Worker extends User {
         this.rank = rank;
     }
 
+    public void printWorkerData() {
+        String workerRank = switch (rank) {
+            case OPTION_1 -> "Labour";
+            case OPTION_2 -> "Manager";
+            case OPTION_3 -> "Director";
+        };
+
+        System.out.println("Worker account name: " + this.getUserName() + ", name: " +
+                this + ", total spended: " + this.getSpended() +
+                "$ , total purchases: " + this.getPurchaseCounter() + ", worker rank: " + workerRank);
+
+    }
+
 }

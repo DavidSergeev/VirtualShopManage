@@ -421,26 +421,26 @@ public class Shop {
             if (currentCustomer != null) {
                     switch (options) {
                         case OPTION_1:
-                            printCustomerData(currentCustomer);
+                            currentCustomer.printCustomerData();
                             break;
                         case OPTION_2:
                             if (currentCustomer.isClubMember()) {
-                                printCustomerData(currentCustomer);
+                                currentCustomer.printCustomerData();
                             }
                             break;
                         case OPTION_3:
                             if (currentCustomer.getPurchaseCounter() > 0) {
-                                printCustomerData(currentCustomer);
+                                currentCustomer.printCustomerData();
                             }
                             break;
                     }
             }
         }
         if (options == BaseOptions.OPTION_3) {
-            for (Worker worker : workers) {
-                if(worker != null) {
-                    if (worker.getPurchaseCounter() > 0) {
-                        printWorkerData(worker);
+            for (Worker currentWorker : workers) {
+                if(currentWorker != null) {
+                    if (currentWorker.getPurchaseCounter() > 0) {
+                        currentWorker.printWorkerData();
                     }
                 }
             }
@@ -526,7 +526,7 @@ public class Shop {
             Customer customer = customers.get(0);
             if (customer != null) {
                 System.out.println("Max buyer (Customer): ");
-                printCustomerData(customer);
+                customer.printCustomerData();
             }
         }
 
@@ -535,29 +535,8 @@ public class Shop {
             Worker worker = workers.get(0);
             if (worker != null) {
                 System.out.println("Max buyer (Worker): ");
-                printWorkerData(worker);
+                worker.printWorkerData();
             }
         }
-    }
-
-    private void printCustomerData(Customer customer) {
-        System.out.println("Customer account name: " + customer.getUserName() + ", name: " +
-                           customer + ", total spended: " + customer.getSpended() +
-                           "$ , total purchases: " + customer.getPurchaseCounter() +
-                           ", is club member: " + customer.isClubMember());
-
-    }
-
-    private void printWorkerData(Worker worker) {
-        String workerRank = switch (worker.getRank()) {
-            case OPTION_1 -> "Labour";
-            case OPTION_2 -> "Manager";
-            case OPTION_3 -> "Director";
-        };
-
-        System.out.println("Worker account name: " + worker.getUserName() + ", name: " +
-                worker + ", total spended: " + worker.getSpended() +
-                "$ , total purchases: " + worker.getPurchaseCounter() + ", worker rank: " + workerRank);
-
     }
 }
